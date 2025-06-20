@@ -96,9 +96,17 @@ def filter_images(min_width, min_height, max_width, max_height):
 
 @app.route('/')
 def home():
+ wpqyrg-codex/find-and-fix-bugs-in-codebase
 
         for root, _, files in os.walk(DOWNLOAD_DIR):
             for filename in files:
                 filepath = os.path.join(root, filename)
                 arcname = os.path.relpath(filepath, DOWNLOAD_DIR)
                 zf.write(filepath, arcname=arcname)
+
+    return render_template('index.html')
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
+ main
