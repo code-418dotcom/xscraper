@@ -13,9 +13,7 @@ app = Flask(__name__)
 DOWNLOAD_DIR = "./downloads"
 progress = {"status": "idle", "percent": 0}
 
-
 HTML_COUNTER = itertools.count()
-
 
 def scrape_with_soup(url, visited=None, depth=0, max_depth=2, root_url=None):
     import requests
@@ -105,7 +103,6 @@ def filter_images(min_width, min_height, max_width, max_height):
 def home():
     return render_template('index.html')
 
-
 @app.route('/scrape', methods=['POST'])
 def scrape():
     url = request.form['url']
@@ -140,7 +137,7 @@ def gallery():
         for name in filenames:
             files.append(os.path.relpath(os.path.join(root, name), DOWNLOAD_DIR))
     if not files:
-        return "No images found.<br><a href='/'>← Go back</a>"
+        return "No images found.<br><a href='/'>&larr; Go back</a>"
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 20))
     total_pages = max(1, math.ceil(len(files) / per_page))
