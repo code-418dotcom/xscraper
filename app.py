@@ -80,6 +80,27 @@ def run_scraper(url, min_w, min_h, max_w, max_h):
         for f in files
     )
     if not has_files:
+        subprocess.run(
+            [
+                "gallery-dl",
+                "--extractor",
+                "generic",
+                "--config",
+                "gallery-dl.conf",
+                "-d",
+                DOWNLOAD_DIR,
+                url,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        has_files = any(
+            os.path.isfile(os.path.join(root, f))
+            for root, _, files in os.walk(DOWNLOAD_DIR)
+            for f in files
+        )
+    if not has_files:
         scrape_with_soup(url)
 
     filter_images(min_w, min_h, max_w, max_h)
