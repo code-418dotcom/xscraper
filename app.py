@@ -15,7 +15,6 @@ progress = {"status": "idle", "percent": 0}
 
 HTML_COUNTER = itertools.count()
 
-
 def scrape_with_soup(url, visited=None, depth=0, max_depth=2, root_url=None):
     import requests
     from bs4 import BeautifulSoup
@@ -94,16 +93,20 @@ def filter_images(min_width, min_height, max_width, max_height):
             try:
                 with Image.open(path) as img:
                     w, h = img.size
-                if not (min_width <= w <= max_width and min_height <= h <= max_height):
-                    os.remove(path)
-            except Exception:
-                os.remove(path)
-
 
 @app.route('/')
 def home():
+ wpqyrg-codex/find-and-fix-bugs-in-codebase
+
+        for root, _, files in os.walk(DOWNLOAD_DIR):
+            for filename in files:
+                filepath = os.path.join(root, filename)
+                arcname = os.path.relpath(filepath, DOWNLOAD_DIR)
+                zf.write(filepath, arcname=arcname)
+
     return render_template('index.html')
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
+ main
