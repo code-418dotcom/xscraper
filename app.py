@@ -97,3 +97,8 @@ def filter_images(min_width, min_height, max_width, max_height):
 @app.route('/')
 def home():
 
+        for root, _, files in os.walk(DOWNLOAD_DIR):
+            for filename in files:
+                filepath = os.path.join(root, filename)
+                arcname = os.path.relpath(filepath, DOWNLOAD_DIR)
+                zf.write(filepath, arcname=arcname)
