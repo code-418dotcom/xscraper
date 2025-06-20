@@ -15,7 +15,6 @@ progress = {"status": "idle", "percent": 0}
 
 HTML_COUNTER = itertools.count()
 
-
 def scrape_with_soup(url, visited=None, depth=0, max_depth=2, root_url=None):
     import requests
     from bs4 import BeautifulSoup
