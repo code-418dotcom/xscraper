@@ -102,4 +102,8 @@ def filter_images(min_width, min_height, max_width, max_height):
 
 @app.route('/')
 def home():
-    return render_template('index._
+    return render_template('index.html')
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
