@@ -22,6 +22,18 @@ def run_scraper(url, min_w, min_h, max_w, max_h):
     progress["percent"] = 100
 
 def filter_images(min_width, min_height, max_width, max_height):
+    for root, _, files in os.walk(DOWNLOAD_DIR):
+        for filename in files:
+            path = os.path.join(root, filename)
+            try:
+                with Image.open(path) as img:
+                    w, h = img.size
+                    if not (min_width <= w <= max_width and min_height <= h <= max_height):
+                        os.remove(path)
+            except:
+                os.remove(path)
+    return
+#
     for filename in os.listdir(DOWNLOAD_DIR):
         path = os.path.join(DOWNLOAD_DIR, filename)
         try:
@@ -58,7 +70,10 @@ def get_progress():
 
 @app.route('/gallery')
 def gallery():
-    files = sorted(os.listdir(DOWNLOAD_DIR))
+    files = []
+    for root, _, filenames in os.walk(DOWNLOAD_DIR):
+        for name in filenames:
+            files.append(os.path.relpath(os.path.join(root, name), DOWNLOAD_DIR))
     if not files:
         return "No images found.<br><a href='/'>← Go back</a>"
     page = int(request.args.get('page', 1))
