@@ -1,5 +1,11 @@
 from flask import Flask, request, send_from_directory, send_file, redirect, url_for, render_template, jsonify
-import os, shutil, subprocess, zipfile, io, math, threading, time
+import os
+import shutil
+import subprocess
+import zipfile
+import io
+import math
+import threading
 from PIL import Image
 
 app = Flask(__name__)
@@ -11,14 +17,13 @@ def scrape_with_soup(url):
     import requests
     from bs4 import BeautifulSoup
     from urllib.parse import urljoin
+
     html_dir = os.path.join(DOWNLOAD_DIR, "html")
     os.makedirs(html_dir, exist_ok=True)
-
     try:
         r = requests.get(url, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
         img_tags = soup.find_all("img")
-
         for i, img in enumerate(img_tags):
             src = img.get("src")
             if not src:
@@ -35,21 +40,26 @@ def scrape_with_soup(url):
         print(f"Soup scraping failed: {e}")
 
 
-
-
 def run_scraper(url, min_w, min_h, max_w, max_h):
     progress["status"] = "running"
     progress["percent"] = 0
 
-    
-if os.path.exists(DOWNLOAD_DIR):
-    shutil.rmtree(DOWNLOAD_DIR)
-os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+    if os.path.exists(DOWNLOAD_DIR):
+        shutil.rmtree(DOWNLOAD_DIR)
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+    subprocess.run(
+        ["gallery-dl", "--config", "gallery-dl.conf", "-d", DOWNLOAD_DIR, url],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
 
-    result = subprocess.run(['gallery-dl', '--config', 'gallery-dl.conf', '-d', DOWNLOAD_DIR, url])
-    has_files = any(os.path.isfile(os.path.join(dp, f)) for dp, dn, filenames in os.walk(DOWNLOAD_DIR) for f in filenames)
-
+    has_files = any(
+        os.path.isfile(os.path.join(root, f))
+        for root, _, files in os.walk(DOWNLOAD_DIR)
+        for f in files
+    )
     if not has_files:
         scrape_with_soup(url)
 
@@ -58,19 +68,6 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     progress["percent"] = 100
 
 
-    progress["status"] = "running"
-    progress["percent"] = 0
-    if not os.path.exists(DOWNLOAD_DIR):
-        os.makedirs(DOWNLOAD_DIR)
-    for f in os.listdir(DOWNLOAD_DIR):
-            proc = subprocess.Popen(['gallery-dl', '-d', DOWNLOAD_DIR, url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    while proc.poll() is None:
-        time.sleep(1)
-        progress["percent"] = min(95, progress["percent"] + 5)
-    filter_images(min_w, min_h, max_w, max_h)
-    progress["status"] = "done"
-    progress["percent"] = 100
-
 def filter_images(min_width, min_height, max_width, max_height):
     for root, _, files in os.walk(DOWNLOAD_DIR):
         for filename in files:
@@ -78,21 +75,16 @@ def filter_images(min_width, min_height, max_width, max_height):
             try:
                 with Image.open(path) as img:
                     w, h = img.size
-                    if not (min_width <= w <= max_width and min_height <= h <= max_height):
-                                    except:
-                    return
-#
-    for filename in os.listdir(DOWNLOAD_DIR):
-        path = os.path.join(DOWNLOAD_DIR, filename)
-        try:
-            with Image.open(path) as img:
-                w, h = img.size
                 if not (min_width <= w <= max_width and min_height <= h <= max_height):
-                            except:
-            
+                    os.remove(path)
+            except Exception:
+                os.remove(path)
+
+
 @app.route('/')
 def home():
     return render_template('index.html')
+
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
@@ -102,17 +94,24 @@ def scrape():
     max_width = int(request.form['max_width'])
     max_height = int(request.form['max_height'])
     per_page = int(request.form['per_page'])
-    threading.Thread(target=run_scraper, args=(url, min_width, min_height, max_width, max_height)).start()
+    threading.Thread(
+        target=run_scraper,
+        args=(url, min_width, min_height, max_width, max_height),
+        daemon=True,
+    ).start()
     return redirect(url_for('loading', per_page=per_page))
+
 
 @app.route('/loading')
 def loading():
     per_page = request.args.get('per_page', 20)
     return render_template('loading.html', per_page=per_page)
 
+
 @app.route('/progress')
 def get_progress():
     return jsonify(progress)
+
 
 @app.route('/gallery')
 def gallery():
@@ -128,11 +127,19 @@ def gallery():
     start = (page - 1) * per_page
     end = start + per_page
     files_to_show = files[start:end]
-    return render_template('gallery.html', files=files_to_show, page=page, per_page=per_page, total_pages=total_pages)
+    return render_template(
+        'gallery.html',
+        files=files_to_show,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages,
+    )
+
 
 @app.route('/img/<path:filename>')
 def img(filename):
     return send_from_directory(DOWNLOAD_DIR, filename)
+
 
 @app.route('/download')
 def download_zip():
@@ -142,7 +149,13 @@ def download_zip():
             filepath = os.path.join(DOWNLOAD_DIR, filename)
             zf.write(filepath, arcname=filename)
     mem_zip.seek(0)
-    return send_file(mem_zip, mimetype='application/zip', as_attachment=True, download_name='images.zip')
+    return send_file(
+        mem_zip,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name='images.zip',
+    )
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
