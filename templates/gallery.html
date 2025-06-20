@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html><head><title>Gallery</title></head><body>
+<h2>Filtered Images (Page {{ page }} of {{ total_pages }})</h2>
+<form action="/gallery" method="get">
+    <input type="hidden" name="page" value="1">
+    <label for="per_page">Thumbs per page:</label>
+    <select name="per_page" onchange="this.form.submit()">
+        <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+    </select>
+</form>
+<div class="gallery">
+{% for f in files %}
+<div>
+    <a href="/img/{{ f }}" target="_blank"><img src="/img/{{ f }}"></a>
+</div>
+{% endfor %}
+</div>
+<div style='margin-top:20px;'>
+{% if page > 1 %}
+<a href="/gallery?page={{ page - 1 }}&per_page={{ per_page }}">← Previous</a>
+{% endif %}
+{% if page < total_pages %}
+<a href="/gallery?page={{ page + 1 }}&per_page={{ per_page }}">Next →</a>
+{% endif %}
+</div><br><a href="/download">📦 Download all as ZIP</a><br><a href="/">← Start New Scrape</a>
+<style>
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+}
+.gallery div {
+    margin: 5px;
+}
+.gallery img {
+    max-width: 200px;
+    max-height: 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+</style>
+</body></html>

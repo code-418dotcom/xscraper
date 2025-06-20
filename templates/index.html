@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html><head><title>Image Scraper</title></head><body>
+<h2>Scrape Website Images</h2>
+<form action="/scrape" method="post">
+URL: <input name="url" required><br><br>
+Min width: <input type="number" name="min_width" value="0"><br>
+Min height: <input type="number" name="min_height" value="0"><br>
+Max width: <input type="number" name="max_width" value="10000"><br>
+Max height: <input type="number" name="max_height" value="10000"><br><br>
+Thumbnails per page:
+<select name="per_page">
+<option value="20">20</option>
+<option value="50">50</option>
+<option value="100">100</option>
+</select><br><br>
+<input type="submit" value="Start Scraping">
+</form></body></html>

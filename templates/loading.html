@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html><head><title>Loading...</title></head><body>
+<h2>Scraping in progress...</h2>
+<div id='bar' style='width:300px;height:25px;border:1px solid black;'>
+    <div id='fill' style='height:100%;width:0%;background:green;'></div>
+</div>
+<p id='status'>Starting...</p>
+<script src="/static/progress.js"></script>
+<script>
+    const perPage = {{ per_page }};
+    pollProgress(() => {
+        window.location.href = "/gallery?page=1&per_page=" + perPage;
+    });
+</script>
+</body></html>
