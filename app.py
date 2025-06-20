@@ -1,5 +1,5 @@
 from flask import Flask, request, send_from_directory, send_file, redirect, url_for, render_template, jsonify
-import os, subprocess, zipfile, io, math, threading, time
+import os, shutil, subprocess, zipfile, io, math, threading, time
 from PIL import Image
 
 app = Flask(__name__)
@@ -41,9 +41,9 @@ def run_scraper(url, min_w, min_h, max_w, max_h):
     progress["percent"] = 0
     if not os.path.exists(DOWNLOAD_DIR):
         os.makedirs(DOWNLOAD_DIR)
-    for root, _, files in os.walk(DOWNLOAD_DIR):
-        for f in files:
-            os.remove(os.path.join(root, f))
+    if os.path.exists(DOWNLOAD_DIR):
+        shutil.rmtree(DOWNLOAD_DIR)
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
     result = subprocess.run(['gallery-dl', '--config', 'gallery-dl.conf', '-d', DOWNLOAD_DIR, url])
     # Check if gallery-dl downloaded anything
