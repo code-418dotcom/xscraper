@@ -36,17 +36,16 @@ def scrape_with_soup(url):
 
 
 
+
 def run_scraper(url, min_w, min_h, max_w, max_h):
     progress["status"] = "running"
     progress["percent"] = 0
-    if not os.path.exists(DOWNLOAD_DIR):
-        os.makedirs(DOWNLOAD_DIR)
+
     if os.path.exists(DOWNLOAD_DIR):
         shutil.rmtree(DOWNLOAD_DIR)
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
     result = subprocess.run(['gallery-dl', '--config', 'gallery-dl.conf', '-d', DOWNLOAD_DIR, url])
-    # Check if gallery-dl downloaded anything
     has_files = any(os.path.isfile(os.path.join(dp, f)) for dp, dn, filenames in os.walk(DOWNLOAD_DIR) for f in filenames)
 
     if not has_files:
@@ -55,6 +54,7 @@ def run_scraper(url, min_w, min_h, max_w, max_h):
     filter_images(min_w, min_h, max_w, max_h)
     progress["status"] = "done"
     progress["percent"] = 100
+
 
     progress["status"] = "running"
     progress["percent"] = 0
