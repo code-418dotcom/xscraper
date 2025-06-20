@@ -13,7 +13,7 @@ def run_scraper(url, min_w, min_h, max_w, max_h):
         os.makedirs(DOWNLOAD_DIR)
     for f in os.listdir(DOWNLOAD_DIR):
         os.remove(os.path.join(DOWNLOAD_DIR, f))
-    proc = subprocess.Popen(['gallery-dl', '--extractor', 'generic', '-d', DOWNLOAD_DIR, url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(['gallery-dl', '-d', DOWNLOAD_DIR, url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     while proc.poll() is None:
         time.sleep(1)
         progress["percent"] = min(95, progress["percent"] + 5)
