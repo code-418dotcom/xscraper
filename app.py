@@ -41,9 +41,11 @@ def run_scraper(url, min_w, min_h, max_w, max_h):
     progress["status"] = "running"
     progress["percent"] = 0
 
-    if os.path.exists(DOWNLOAD_DIR):
-        shutil.rmtree(DOWNLOAD_DIR)
-    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+    
+if os.path.exists(DOWNLOAD_DIR):
+    shutil.rmtree(DOWNLOAD_DIR)
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+
 
     result = subprocess.run(['gallery-dl', '--config', 'gallery-dl.conf', '-d', DOWNLOAD_DIR, url])
     has_files = any(os.path.isfile(os.path.join(dp, f)) for dp, dn, filenames in os.walk(DOWNLOAD_DIR) for f in filenames)
@@ -61,8 +63,7 @@ def run_scraper(url, min_w, min_h, max_w, max_h):
     if not os.path.exists(DOWNLOAD_DIR):
         os.makedirs(DOWNLOAD_DIR)
     for f in os.listdir(DOWNLOAD_DIR):
-        os.remove(os.path.join(DOWNLOAD_DIR, f))
-    proc = subprocess.Popen(['gallery-dl', '-d', DOWNLOAD_DIR, url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.Popen(['gallery-dl', '-d', DOWNLOAD_DIR, url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     while proc.poll() is None:
         time.sleep(1)
         progress["percent"] = min(95, progress["percent"] + 5)
@@ -78,10 +79,8 @@ def filter_images(min_width, min_height, max_width, max_height):
                 with Image.open(path) as img:
                     w, h = img.size
                     if not (min_width <= w <= max_width and min_height <= h <= max_height):
-                        os.remove(path)
-            except:
-                os.remove(path)
-    return
+                                    except:
+                    return
 #
     for filename in os.listdir(DOWNLOAD_DIR):
         path = os.path.join(DOWNLOAD_DIR, filename)
@@ -89,10 +88,8 @@ def filter_images(min_width, min_height, max_width, max_height):
             with Image.open(path) as img:
                 w, h = img.size
                 if not (min_width <= w <= max_width and min_height <= h <= max_height):
-                    os.remove(path)
-        except:
-            os.remove(path)
-
+                            except:
+            
 @app.route('/')
 def home():
     return render_template('index.html')
