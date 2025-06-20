@@ -6,7 +6,56 @@ app = Flask(__name__)
 DOWNLOAD_DIR = "./downloads"
 progress = {"status": "idle", "percent": 0}
 
+
+def scrape_with_soup(url):
+    import requests
+    from bs4 import BeautifulSoup
+    from urllib.parse import urljoin
+    html_dir = os.path.join(DOWNLOAD_DIR, "html")
+    os.makedirs(html_dir, exist_ok=True)
+
+    try:
+        r = requests.get(url, timeout=10)
+        soup = BeautifulSoup(r.text, "html.parser")
+        img_tags = soup.find_all("img")
+
+        for i, img in enumerate(img_tags):
+            src = img.get("src")
+            if not src:
+                continue
+            img_url = urljoin(url, src)
+            try:
+                img_data = requests.get(img_url, timeout=10).content
+                ext = os.path.splitext(img_url)[1] or ".jpg"
+                with open(os.path.join(html_dir, f"img_{i}{ext}"), "wb") as f:
+                    f.write(img_data)
+            except Exception as e:
+                print(f"Failed to download {img_url}: {e}")
+    except Exception as e:
+        print(f"Soup scraping failed: {e}")
+
+
+
 def run_scraper(url, min_w, min_h, max_w, max_h):
+    progress["status"] = "running"
+    progress["percent"] = 0
+    if not os.path.exists(DOWNLOAD_DIR):
+        os.makedirs(DOWNLOAD_DIR)
+    for root, _, files in os.walk(DOWNLOAD_DIR):
+        for f in files:
+            os.remove(os.path.join(root, f))
+
+    result = subprocess.run(['gallery-dl', '--config', 'gallery-dl.conf', '-d', DOWNLOAD_DIR, url])
+    # Check if gallery-dl downloaded anything
+    has_files = any(os.path.isfile(os.path.join(dp, f)) for dp, dn, filenames in os.walk(DOWNLOAD_DIR) for f in filenames)
+
+    if not has_files:
+        scrape_with_soup(url)
+
+    filter_images(min_w, min_h, max_w, max_h)
+    progress["status"] = "done"
+    progress["percent"] = 100
+
     progress["status"] = "running"
     progress["percent"] = 0
     if not os.path.exists(DOWNLOAD_DIR):

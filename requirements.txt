@@ -1,3 +1,5 @@
 Flask
 gallery-dl
 Pillow
+beautifulsoup4
+requests
