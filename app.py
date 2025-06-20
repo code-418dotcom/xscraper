@@ -6,6 +6,7 @@ import zipfile
 import io
 import math
 import threading
+import itertools
 from PIL import Image
 
 app = Flask(__name__)
@@ -13,10 +14,21 @@ DOWNLOAD_DIR = "./downloads"
 progress = {"status": "idle", "percent": 0}
 
 
-def scrape_with_soup(url):
+HTML_COUNTER = itertools.count()
+
+
+def scrape_with_soup(url, visited=None, depth=0, max_depth=2, root_url=None):
     import requests
     from bs4 import BeautifulSoup
-    from urllib.parse import urljoin
+    from urllib.parse import urljoin, urlparse
+
+    if visited is None:
+        visited = set()
+    if root_url is None:
+        root_url = url
+    if depth > max_depth or url in visited:
+        return
+    visited.add(url)
 
     html_dir = os.path.join(DOWNLOAD_DIR, "html")
     os.makedirs(html_dir, exist_ok=True)
@@ -24,7 +36,7 @@ def scrape_with_soup(url):
         r = requests.get(url, timeout=10)
         soup = BeautifulSoup(r.text, "html.parser")
         img_tags = soup.find_all("img")
-        for i, img in enumerate(img_tags):
+        for img in img_tags:
             src = img.get("src")
             if not src:
                 continue
@@ -32,12 +44,20 @@ def scrape_with_soup(url):
             try:
                 img_data = requests.get(img_url, timeout=10).content
                 ext = os.path.splitext(img_url)[1] or ".jpg"
-                with open(os.path.join(html_dir, f"img_{i}{ext}"), "wb") as f:
+                fname = f"img_{next(HTML_COUNTER)}{ext}"
+                with open(os.path.join(html_dir, fname), "wb") as f:
                     f.write(img_data)
             except Exception as e:
                 print(f"Failed to download {img_url}: {e}")
+
+        if depth < max_depth:
+            root_domain = urlparse(root_url).netloc
+            for link in soup.find_all("a", href=True):
+                href = urljoin(url, link["href"])
+                if urlparse(href).netloc == root_domain and href not in visited:
+                    scrape_with_soup(href, visited, depth + 1, max_depth, root_url)
     except Exception as e:
-        print(f"Soup scraping failed: {e}")
+        print(f"Soup scraping failed for {url}: {e}")
 
 
 def run_scraper(url, min_w, min_h, max_w, max_h):
