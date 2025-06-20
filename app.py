@@ -94,9 +94,14 @@ def filter_images(min_width, min_height, max_width, max_height):
             try:
                 with Image.open(path) as img:
                     w, h = img.size
-                if not (min_width <= w <= max_width and min_height <= h <= max_height):
-                    os.remove(path)
             except Exception:
+                os.remove(path)
+                continue
+
+            if not (
+                min_width <= w <= max_width
+                and min_height <= h <= max_height
+            ):
                 os.remove(path)
 
 
